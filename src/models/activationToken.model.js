@@ -15,13 +15,11 @@ const activationTokenSchema = new mongoose.Schema(
     expiresAt: {
       type: Date,
       required: true,
+      // NO TTL index - we'll handle expiration in application code
     },
   },
   { timestamps: true }
 );
-
-// Auto-delete expired tokens
-activationTokenSchema.index({ expiresAt: 1 }, { expireAfterSeconds: 0 });
 
 module.exports = mongoose.model(
   "ActivationToken",

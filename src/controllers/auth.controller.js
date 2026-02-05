@@ -16,10 +16,16 @@ const register = async (req, res) => {
 };
 
 const activate = async (req, res) => {
+  console.log("[CONTROLLER] Activation request received");
+  console.log("[CONTROLLER] Query params:", req.query);
+  console.log("[CONTROLLER] Token from query:", req.query.token);
+  
   try {
     await authService.activateUser(req.query.token);
+    console.log("[CONTROLLER] ✅ Activation successful");
     res.json({ message: "Account activated successfully" });
   } catch (err) {
+    console.error("[CONTROLLER] ❌ Activation failed:", err.message);
     res.status(400).json({ message: err.message });
   }
 };
@@ -33,6 +39,10 @@ const login = async (req, res) => {
 
     res.json({ token });
   } catch (err) {
+    // Return 403 Forbidden for activation issues
+    if (err.message.includes("activated")) {
+      return res.status(403).json({ message: err.message });
+    }
     res.status(400).json({ message: err.message });
   }
 };

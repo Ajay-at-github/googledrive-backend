@@ -1,11 +1,16 @@
 const Folder = require("../models/folder.model");
 
 const createFolder = async ({ name, parentFolderId, user }) => {
-  let path = `/${name}`;
+  let path;
 
-  if (parentFolderId) {
+  const normalizedParentFolderId =
+    !parentFolderId || parentFolderId === "null" || parentFolderId === "undefined"
+      ? null
+      : parentFolderId;
+
+  if (normalizedParentFolderId) {
     const parentFolder = await Folder.findOne({
-      _id: parentFolderId,
+      _id: normalizedParentFolderId,
       ownerId: user._id,
     });
 
@@ -14,12 +19,14 @@ const createFolder = async ({ name, parentFolderId, user }) => {
     }
 
     path = `${parentFolder.path}/${name}`;
+  } else {
+    path = `root/${name}`;
   }
 
   const folder = await Folder.create({
     name,
     ownerId: user._id,
-    parentFolderId: parentFolderId || null,
+    parentFolderId: normalizedParentFolderId,
     path,
   });
 
@@ -27,9 +34,14 @@ const createFolder = async ({ name, parentFolderId, user }) => {
 };
 
 const listFolders = async ({ parentFolderId, user }) => {
+  const normalizedParentFolderId =
+    !parentFolderId || parentFolderId === "null" || parentFolderId === "undefined"
+      ? null
+      : parentFolderId;
+
   return Folder.find({
     ownerId: user._id,
-    parentFolderId: parentFolderId || null,
+    parentFolderId: normalizedParentFolderId,
   }).sort({ createdAt: -1 });
 };
 

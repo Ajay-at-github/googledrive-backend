@@ -1,92 +1,63 @@
-const File = require("../models/file.model");
-const Folder = require("../models/folder.model");
-const s3Service = require("./s3.service");
+const { PutObjectCommand, GetObjectCommand } = require("@aws-sdk/client-s3");
+const { getSignedUrl } = require("@aws-sdk/s3-request-presigner");
+const s3 = require("../config/s3");
 const { v4: uuidv4 } = require("uuid");
+const File = require("../models/file.model");
 
-const getUploadUrl = async ({ fileName, mimeType, folderId, user }) => {
-  let path = "/";
-  let s3Prefix = `${user._id}`;
-
-  if (folderId) {
-    const folder = await Folder.findOne({
-      _id: folderId,
-      ownerId: user._id,
-    });
-
-    if (!folder) {
-      throw new Error("Folder not found");
-    }
-
-    path = folder.path;
-    s3Prefix = `${user._id}${folder.path}`;
+const generateUploadUrl = async ({
+  userId,
+  fileName,
+  fileType,
+  folderPath = "root",
+}) => {
+  if (!userId) {
+    throw new Error("User ID is required to generate upload URL");
   }
 
-  const uniqueFileName = `${uuidv4()}-${fileName}`;
-  const s3Key = `${s3Prefix}/${uniqueFileName}`;
+  const fileKey = `${userId}/${folderPath}/${uuidv4()}-${fileName}`;
 
-  const uploadUrl = await s3Service.generateUploadUrl({
-    key: s3Key,
-    contentType: mimeType,
+  const command = new PutObjectCommand({
+    Bucket: process.env.AWS_S3_BUCKET,
+    Key: fileKey,
+  });
+
+  const uploadUrl = await getSignedUrl(s3, command, {
+    expiresIn: 300, // 5 minutes
   });
 
   return {
     uploadUrl,
-    s3Key,
-    path: `${path}/${fileName}`,
+    fileKey,
   };
 };
 
-const saveFileMetadata = async ({
-  fileName,
-  fileSize,
-  mimeType,
-  s3Key,
-  folderId,
-  path,
-  user,
-}) => {
-  return File.create({
-    fileName,
-    fileSize,
-    mimeType,
-    s3Key,
-    folderId: folderId || null,
-    ownerId: user._id,
-    path,
-  });
+const listFiles = async ({ userId, folderId }) => {
+  const normalizedFolderId =
+    !folderId || folderId === "null" || folderId === "undefined"
+      ? null
+      : folderId;
+
+  return File.find({
+    ownerId: userId,
+    folderId: normalizedFolderId,
+  }).sort({ createdAt: -1 });
 };
 
-const downloadFile = async ({ fileId, user }) => {
-  const file = await File.findOne({
-    _id: fileId,
-    ownerId: user._id,
+const generateDownloadUrl = async (s3Key) => {
+  const command = new GetObjectCommand({
+    Bucket: process.env.AWS_S3_BUCKET_NAME || process.env.AWS_S3_BUCKET,
+    Key: s3Key,
   });
 
-  if (!file) {
-    throw new Error("File not found");
-  }
+  const downloadUrl = await getSignedUrl(s3, command, {
+    expiresIn: 300, // 5 minutes
+  });
 
-  const downloadUrl = await s3Service.generateDownloadUrl(file.s3Key);
   return downloadUrl;
 };
 
-const deleteFile = async ({ fileId, user }) => {
-  const file = await File.findOne({
-    _id: fileId,
-    ownerId: user._id,
-  });
-
-  if (!file) {
-    throw new Error("File not found");
-  }
-
-  await s3Service.deleteObject(file.s3Key);
-  await File.deleteOne({ _id: file._id });
-};
-
 module.exports = {
-  getUploadUrl,
-  saveFileMetadata,
-  downloadFile,
-  deleteFile,
+  generateUploadUrl,
+  listFiles,
+  generateDownloadUrl,
 };

@@ -1,6 +1,6 @@
 const { PutObjectCommand, GetObjectCommand, DeleteObjectCommand } = require("@aws-sdk/client-s3");
 const { getSignedUrl } = require("@aws-sdk/s3-request-presigner");
-const s3 = require("../config/aws");
+const s3 = require("../config/s3");
 
 const generateUploadUrl = async ({ key, contentType }) => {
   const command = new PutObjectCommand({

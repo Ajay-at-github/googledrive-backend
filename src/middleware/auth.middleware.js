@@ -23,6 +23,7 @@ const authMiddleware = async (req, res, next) => {
     }
 
     req.user = user; // attach user to request
+    req.userId = user._id; // convenience for controllers/services
     next();
   } catch (err) {
     return res.status(401).json({ message: "Unauthorized" });

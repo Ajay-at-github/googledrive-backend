@@ -37,9 +37,4 @@ const fileSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-// Indexes
-fileSchema.index({ ownerId: 1 });
-fileSchema.index({ folderId: 1 });
-fileSchema.index({ s3Key: 1 });
-
 module.exports = mongoose.model("File", fileSchema);
