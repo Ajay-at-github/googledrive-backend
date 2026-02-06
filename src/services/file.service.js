@@ -43,10 +43,16 @@ const listFiles = async ({ userId, folderId }) => {
   }).sort({ createdAt: -1 });
 };
 
-const generateDownloadUrl = async (s3Key) => {
+const generateDownloadUrl = async (s3Key, options = {}) => {
   const command = new GetObjectCommand({
     Bucket: process.env.AWS_S3_BUCKET_NAME || process.env.AWS_S3_BUCKET,
     Key: s3Key,
+    ...(options.responseContentDisposition
+      ? { ResponseContentDisposition: options.responseContentDisposition }
+      : {}),
+    ...(options.responseContentType
+      ? { ResponseContentType: options.responseContentType }
+      : {}),
   });
 
   const downloadUrl = await getSignedUrl(s3, command, {

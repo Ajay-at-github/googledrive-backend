@@ -176,7 +176,15 @@ const getDownloadUrl = async (req, res) => {
     return res.status(404).json({ message: "File not found" });
   }
 
-  const downloadUrl = await fileService.generateDownloadUrl(file.s3Key);
+  const forceDownload = req.query.download === "true";
+  const contentDisposition = forceDownload
+    ? `attachment; filename="${file.fileName}"`
+    : undefined;
+
+  const downloadUrl = await fileService.generateDownloadUrl(file.s3Key, {
+    responseContentDisposition: contentDisposition,
+    responseContentType: file.mimeType,
+  });
 
   res.json({
     downloadUrl,
