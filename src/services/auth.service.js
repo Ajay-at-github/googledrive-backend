@@ -50,13 +50,15 @@ const registerUser = async (data) => {
     throw new Error("Failed to create activation token: " + error.message);
   }
 
-  try {
-    await emailService.sendActivationEmail(user.email, token);
-    console.log("[REGISTER] ✅ Activation email sent to:", user.email);
-  } catch (error) {
-    console.error("[REGISTER] ⚠️  Failed to send activation email:", error);
-    // Continue even if email fails - token is still created
-  }
+  // Send activation email asynchronously to avoid delaying the response.
+  setImmediate(async () => {
+    try {
+      await emailService.sendActivationEmail(user.email, token);
+      console.log("[REGISTER] ✅ Activation email sent to:", user.email);
+    } catch (error) {
+      console.error("[REGISTER] ⚠️  Failed to send activation email:", error);
+    }
+  });
 
   console.log("[REGISTER] Registration complete for:", email);
   return { user, token };
