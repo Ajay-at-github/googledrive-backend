@@ -176,9 +176,7 @@ const getDownloadUrl = async (req, res) => {
     return res.status(404).json({ message: "File not found" });
   }
 
-  const downloadUrl = await fileService.generateDownloadUrl({
-    s3Key: file.s3Key,
-  });
+  const downloadUrl = await fileService.generateDownloadUrl(file.s3Key);
 
   res.json({
     downloadUrl,
