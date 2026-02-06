@@ -14,13 +14,24 @@ const sendActivationEmail = async (email, token) => {
   const activationLink = `${process.env.CLIENT_URL}/activate?token=${token}`;
 
   await transporter.sendMail({
-    from: `"Google Drive Clone" <${process.env.EMAIL_USER}>`,
+    from: `"CloudDrive" <${process.env.EMAIL_USER}>`,
     to: email,
     subject: "Activate your account",
     html: `
-      <h3>Account Activation</h3>
-      <p>Click the link below to activate your account:</p>
-      <a href="${activationLink}">${activationLink}</a>
+      <div style="font-family: Arial, Helvetica, sans-serif; color: #111111; line-height: 1.6;">
+        <p>Hi there,</p>
+        <p>Welcome to CloudDrive! Please verify your email address by clicking the button below:</p>
+        <p>
+          <a
+            href="${activationLink}"
+            style="display: inline-block; background: #6a00ff; color: #ffffff; padding: 12px 18px; text-decoration: none; border-radius: 4px; font-weight: 600;"
+          >Verify your email</a>
+        </p>
+        <p>This link will expire in 24 hours.</p>
+        <p>If you did not sign up for a CloudDrive account, you can safely ignore this email.</p>
+        <p>Best,<br />The CloudDrive Team</p>
+        <p style="color: #777777; font-size: 12px;">© 2026 CloudDrive. Secure cloud storage for everyone.</p>
+      </div>
     `,
   });
 };

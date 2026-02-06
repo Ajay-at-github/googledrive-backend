@@ -43,7 +43,15 @@ const fileRoutes = require("./routes/file.routes");
 
 const app = express();
 
-app.use(cors());
+app.use(
+    cors({
+        origin: [
+        "http://localhost:5173",
+        "https://ajay-at-github.github.io/googledrive-frontend",
+        ],
+        credentials: true,
+    })
+);
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
