@@ -47,7 +47,7 @@ app.use(
     cors({
         origin: [
         "http://localhost:5173",
-        "https://ajay-at-github.github.io/googledrive-frontend",
+        "https://ajay-at-github.github.io",
         ],
         credentials: true,
     })
